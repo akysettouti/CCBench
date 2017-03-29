@@ -56,7 +56,7 @@ public class WSN {
 
     @Override
     public String toString() {
-        return "WSN{" + "budget=" + budget + ", mission_period=" + mission_period + ", ecu=" + ecu + ", ram=" + ram + ", hdd=" + hdd + ", bw=" + bw + '}';
+        return "WSN{" + "code=" + code + ", budget=" + budget + ", mission_period=" + mission_period + ", ecu=" + ecu + ", ram=" + ram + ", hdd=" + hdd + ", bw=" + bw + ", location_code=" + location_code + '}';
     }
 
     /**

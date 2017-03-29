@@ -49,27 +49,51 @@ public class AVLTree implements Comparable {
     }
     
     private void rotateLeft() {
-        AVLTree right = this.right;
-        right.parent = this.parent;
-        AVLTree move = right.left;
-        this.right = move;
-        move.parent = this;
-        AVLTree parent = this.parent;
-        if (parent.left == this) parent.left = right;
-        else parent.right = right;
-        this.parent = right;
-        right.left = this;
+        AVLTree suposedRight = this.right;
+        suposedRight.parent = this.parent;
+        if (suposedRight.right != null) {
+            AVLTree move = suposedRight.right;
+            this.right = move;
+            move.parent = this;
+        }
+        if (this.parent != null) {
+            AVLTree suposedParent = this.parent;
+            if (suposedParent.left == this) {
+                suposedParent.left = suposedRight;
+            } else if (suposedParent.right == this) {
+                suposedParent.right = suposedRight;
+            }
+        }
+        this.parent = suposedRight;
+        suposedRight.left = this;
     }
     
     private void rotateRight() {
-        
+        AVLTree suposedLeft = this.left;
+        suposedLeft.parent = this.parent;
+        if (suposedLeft.right != null) {
+            AVLTree move = suposedLeft.right;
+            this.left = move;
+            move.parent = this;
+        }
+        if (this.parent != null) {
+            AVLTree suposedParent = this.parent;
+            if (suposedParent.left == this) {
+                suposedParent.left = suposedLeft;
+            } else if (suposedParent.right == this) {
+                suposedParent.right = suposedLeft;
+            }
+        }
+        this.parent = suposedLeft;
+        suposedLeft.right = this;
     }
     
     private int height(){
-        if (left == null) if (right == null) return 0;
-        else return 1 + right.height();
-        else if (right == null) return 1 + left.height();
-        else return 1 + Math.max(left.height(), right.height());
+        if ((left==null)&&(right==null)) return 0;
+        if ((left==null)&&(right!=null)) return 1 + right.height();
+        if ((left!=null)&&(right==null)) return 1 + left.height();
+        if ((left!=null)&&(right!=null)) return 1 + Math.max(left.height(), right.height());
+        return -1;
     }
     
     /**

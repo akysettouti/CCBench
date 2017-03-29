@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package input;
 
 import essential.CCService;
@@ -17,6 +12,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Restore Data from a DataBase.
@@ -71,7 +68,18 @@ public class DataBaseDataReader extends DataReader {
                 );
             }
         } catch (SQLException ex) {
-            System.out.println("Problème de restauration des données utilisateurs. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                statement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         try {
             statement = connection.createStatement();
@@ -94,7 +102,18 @@ public class DataBaseDataReader extends DataReader {
                 );
             }
         } catch (SQLException ex) {
-            System.out.println("Problème de restaurationdes données services. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                statement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         try {
             statement = connection.createStatement();
@@ -113,72 +132,109 @@ public class DataBaseDataReader extends DataReader {
                         )
                 );
             }
-            statement.close();
             connection.close();
         } catch (SQLException ex) {
-            System.out.println("Problème de restaurationdes données réseaux. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                statement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
     @Override
     public double getAvailability(CCService ccService, WSN wsn) {
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException ex) {
-            System.out.println("Problème de pilote. Exception : "+ex.getMessage());
-        }
+        double result = -1;
         Connection connection = null;
-        try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/cc","saky","saky");
-        } catch (SQLException ex) {
-            System.out.println("Problème de connexion. Exception : "+ex.getMessage());
-        }
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         try {
+            Class.forName(DEFAULT_DRIVER);
+            connection = DriverManager.getConnection("jdbc:mysql://"+DEFAULT_HOST+":"+DEFAULT_PORT+"/"+DEFAULT_DATABASE+"?autoReconnect=true&useSSL=false",DEFAULT_USER,DEFAULT_PASSWORD);
             preparedStatement = connection.prepareStatement("select availability FROM cc.network_performance where provider_location = ? and client_location = ?");
             preparedStatement.setInt(1, ccService.getLocation_id());
             preparedStatement.setInt(2, wsn.getLocation_code());
             resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-            double result = resultSet.getDouble("availability");
-            preparedStatement.close();
-            connection.close();
-            return result;
-        } catch (SQLException ex) {
-            System.out.println("Problème de restauration des données (Availability). Exception : "+ex.getMessage());
+            resultSet.first();
+            result = resultSet.getDouble("availability");
+        } catch (SQLException | ClassNotFoundException ex) {
+            System.out.println(ccService.toString()+", "+wsn.toString());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                preparedStatement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        return -1;
+        return result;
     }
 
     @Override
     public int getResponseTime(CCService ccService, WSN wsn) {
+        int result = -1;
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName(DEFAULT_DRIVER);
         } catch (ClassNotFoundException ex) {
-            System.out.println("Problème de pilote. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
         }
         Connection connection = null;
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/cc","saky","saky");
+            connection = DriverManager.getConnection("jdbc:mysql://"+DEFAULT_HOST+":"+DEFAULT_PORT+"/"+DEFAULT_DATABASE+"?autoReconnect=true&useSSL=false",DEFAULT_USER,DEFAULT_PASSWORD);
         } catch (SQLException ex) {
-            System.out.println("Problème de connexion. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
         }
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        try {
+        try {            
             preparedStatement = connection.prepareStatement("select network_time_period FROM cc.network_performance where provider_location = ? and client_location = ?");
             preparedStatement.setInt(1, ccService.getLocation_id());
             preparedStatement.setInt(2, wsn.getLocation_code());
             resultSet = preparedStatement.executeQuery();
-            resultSet.next();
-            int result = resultSet.getInt("network_time_period");
-            preparedStatement.close();
-            connection.close();
-            return result;
+            resultSet.first();
+            result = resultSet.getInt("network_time_period");
         } catch (SQLException ex) {
-            System.out.println("Problème de restauration des données (Response Time). Exception : "+ex.getMessage());
+            System.out.println(ccService.toString()+", "+wsn.toString());
+            Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                preparedStatement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        return -1;
+        return result;
     }
 }

@@ -1,16 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package essential;
 
 import input.DataBaseDataReader;
 import java.util.Objects;
 
 /**
- *
- * @author sakyb_000
+ * Public IaaS Cloud Computing Service.
+ * @author A.K.Y. SETTOUTI.
  */
 public class CCService {
     private int instance_id;
@@ -126,7 +121,14 @@ public class CCService {
         return new DataBaseDataReader().getAvailability(this, wsn);
     }
     
+    /**
+     * Create another CCservice with the same values for attributes.
+     * @param other Another Public IaaS Cloud Computing Services.
+     */
     public CCService(CCService other){
+        this.provider_id = other.provider_id;
+        this.instance_id = other.instance_id;
+        this.location_id = other.location_id;
         this.provider = other.provider;
         this.instance = other.instance;
         this.location = other.location;
@@ -140,9 +142,9 @@ public class CCService {
 
     @Override
     public String toString() {
-        return "CCService{" + "provider=" + provider + ", instance=" + instance + ", location=" + location + ", ECU=" + ECU + ", RAM=" + RAM + ", HDD=" + HDD + ", BW=" + BW + ", instance_price=" + instance_price + ", bw_price=" + bw_price + '}';
+        return "CCService{" + "instance_id=" + instance_id + ", provider_id=" + provider_id + ", location_id=" + location_id + ", provider=" + provider + ", instance=" + instance + ", location=" + location + ", ECU=" + ECU + ", RAM=" + RAM + ", HDD=" + HDD + ", BW=" + BW + ", instance_price=" + instance_price + ", bw_price=" + bw_price + '}';
     }
-
+    
     /**
      *
      * @param instance_id Public IaaS Cloud Computing Service Instance Code.

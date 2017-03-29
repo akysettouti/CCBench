@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Save Data in a DataBase.
@@ -27,13 +29,13 @@ public class DataBaseDataWriter extends DataWriter {
         try {
             Class.forName(DEFAULT_DRIVER);
         } catch (ClassNotFoundException ex) {
-            System.out.println("Problème de pilote. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
         Connection connection = null;
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://"+DEFAULT_HOST+":"+DEFAULT_PORT+"/"+DEFAULT_DATABASE,DEFAULT_USER,DEFAULT_PASSWORD);
+            connection = DriverManager.getConnection("jdbc:mysql://"+DEFAULT_HOST+":"+DEFAULT_PORT+"/"+DEFAULT_DATABASE+"?autoReconnect=true&useSSL=false",DEFAULT_USER,DEFAULT_PASSWORD);
         } catch (SQLException ex) {
-            System.out.println("Problème de connexion. Exception : "+ex.getMessage());
+            Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
         }
         ResultSet resultSet = null;
         Statement statement = null;
@@ -45,14 +47,25 @@ public class DataBaseDataWriter extends DataWriter {
             resultSet.first();
             date = resultSet.getInt("id");
         } catch (SQLException ex) {
-            System.out.println("Problème de création d'une nouvelle expérience. Exception : " + ex.getMessage());
+            Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                resultSet.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                statement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         PreparedStatement preparedStatement = null;
         if (date > -1){
             try {
                 preparedStatement = connection.prepareStatement("insert into result values (?,?,?,?,?,?,?,?,?)");
             } catch (SQLException ex) {
-                System.out.println("Problème de préparation de requêtes. Exception : " + ex.getMessage());
+                Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
             }
             for (CCResult ccResult : ccResults) {
                 try {
@@ -67,8 +80,18 @@ public class DataBaseDataWriter extends DataWriter {
                     preparedStatement.setDouble(9, ccResult.getScore());
                     preparedStatement.execute();
                 } catch (SQLException ex) {
-                    System.out.println("Problème d'insertion de données. Exception : " + ex.getMessage());
+                    Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            }
+            try {
+                preparedStatement.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                connection.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DataBaseDataWriter.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

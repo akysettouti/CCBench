@@ -1,9 +1,8 @@
 package essential;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import tree.AVLTree;
-import tree.AVLTreeResult;
+import java.util.NavigableSet;
+import java.util.TreeSet;
 import zCurveFunction.ZCurve;
 
 /**
@@ -12,16 +11,8 @@ import zCurveFunction.ZCurve;
  * @author A.K.Y. SETTOUTI.
  */
 public abstract class BCloudTree extends Approach {
-
-    /**
-     * Cloud Computing Services indexed Tree Root Element.
-     */
-    protected AVLTree bCloudTreeRoot;
-
-    /**
-     * ZCurve Function.
-     */
-    protected ZCurve zCurveFunction;
+    private TreeSet<BCloudNode> bCloudTree;
+    ZCurve zCurve;
 
     /**
      * Prepare a BCloudTree based approach to Run.
@@ -30,21 +21,25 @@ public abstract class BCloudTree extends Approach {
      */
     public BCloudTree(ArrayList<CCService> ccServices, ZCurve zCurve) {
         super(ccServices);
-        this.zCurveFunction = zCurve;
-        bCloudTreeRoot = new AVLTree(ccServices.get(0), zCurveFunction.getValue(ccServices.get(0)));
-        Iterator iterator = ccServices.iterator();
-        iterator.next();
-        while(iterator.hasNext()){
-            CCService current = (CCService) iterator.next();
-            bCloudTreeRoot.add(new AVLTree(current, zCurveFunction.getValue(current)));
-        }
+        this.zCurve = zCurve;
+        bCloudTree = new TreeSet<BCloudNode>();
+        for(CCService ccService : ccServices)
+            bCloudTree.add(new BCloudNode(ccService, this.zCurve.getValue(ccService)));
     }
 
     @Override
     public void solve(WSN wsn, CCUser user) {
-        ArrayList<AVLTreeResult> treeResults = bCloudTreeRoot.search(wsn, zCurveFunction);
-        treeResults.forEach((AVLTreeResult result) -> {
-            ccResults.add(new CCResult(BCloudTree.this.getClass().getSimpleName(), result.getFindingTime(), result.getCcService(), wsn, user));
-        });
+        long debut = System.currentTimeMillis();
+        CCService lowerCCService = new CCService(0, 0, 1, "CloudSigma", "Small-2", "Frankfurt-Germany", wsn.getEcu(), wsn.getRam(), wsn.getHdd(), 0, 0, 0);
+        BCloudNode lowerBound = new BCloudNode(lowerCCService, this.zCurve.getValue(lowerCCService));
+        NavigableSet<BCloudNode> navigableSet = bCloudTree.subSet(lowerBound, false, bCloudTree.last(), true);
+        for(BCloudNode bCloudNode : navigableSet) if (bCloudNode.isValid(wsn))
+            ccResults.add(new CCResult(
+                    getClass().getSimpleName(),
+                    System.currentTimeMillis() - debut,
+                    bCloudNode,
+                    wsn,
+                    user
+            ));
     }
 }

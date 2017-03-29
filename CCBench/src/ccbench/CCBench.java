@@ -1,13 +1,15 @@
 package ccbench;
 
+import bCloudTree.BCloudTree;
 import essential.Approach;
 import essential.CCService;
 import essential.WSN;
 import essential.CCResult;
 import essential.CCUser;
+import greedyAppraoch.GreedyAppraoch;
 import input.DataBaseDataReader;
-import originalBCloudTree.OriginalBCloudTree;
-import proposedBCloudTree.ProposedBCloudTree;
+import bPlusCloudTree.BPlusCloudTree;
+import proposedApproach.ProposedApproach;
 import input.DataReader;
 import java.util.ArrayList;
 import output.DataBaseDataWriter;
@@ -27,31 +29,33 @@ public class CCBench {
         dataBaseDataExtractor.read();
         // Extract services
         ArrayList<CCService> ccServices = dataBaseDataExtractor.getCcServices();
-        System.out.println(ccServices.size());
         // Extract users
         ArrayList<CCUser> ccUsers = dataBaseDataExtractor.getCcUsers();
         // Extract wireless sensor networks
         ArrayList<WSN> wsns = dataBaseDataExtractor.getWsns();
-        ArrayList<Approach> approaches = new ArrayList<Approach>();
-        approaches.add(new OriginalBCloudTree(ccServices));
-        approaches.add(new ProposedBCloudTree(ccServices));
+        Approach approach;
         ArrayList<CCResult> ccResults = new ArrayList<CCResult>();
-        // For each approach
-        approaches.stream().map((approach) -> {
-            // Browse all users and wsn(s)
-            ccUsers.forEach((user) -> {
-                wsns.forEach((wsn) -> {
-                    // For each approach, user, wsn; find the compatible service for.
-                    approach.solve(wsn, user);
-                });
-            });
-            return approach;
-        }).forEachOrdered((approach) -> {
-            // Collect every result in a single variable.
-            ccResults.addAll(approach.getCcResults());
-        });
+        approach = new GreedyAppraoch(ccServices);
+        for(CCUser ccUser : ccUsers)
+            for(WSN wsn : wsns)
+                approach.solve(wsn, ccUser);
+        ccResults.addAll(approach.getCcResults());
+        approach = new BCloudTree(ccServices);
+        for(CCUser ccUser : ccUsers)
+            for(WSN wsn : wsns)
+                approach.solve(wsn, ccUser);        
+        ccResults.addAll(approach.getCcResults());
+        approach = new BPlusCloudTree(ccServices);
+        for(CCUser ccUser : ccUsers)
+            for(WSN wsn : wsns)
+                approach.solve(wsn, ccUser);
+        ccResults.addAll(approach.getCcResults());
+        approach = new ProposedApproach(ccServices);
+        for(CCUser ccUser : ccUsers)
+            for(WSN wsn : wsns)
+                approach.solve(wsn, ccUser);
+        ccResults.addAll(approach.getCcResults());
         DataWriter dataWriter = new DataBaseDataWriter();
-        // Write results in a database
         dataWriter.write(ccResults);
     }
 }
